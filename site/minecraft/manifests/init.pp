@@ -1,30 +1,31 @@
 class minecraft (
-  $url = 'https://s3.amazonaws.com/Minecraft.Download/versions/1.12.2/minecraft_server.1.12.2.jar',
+  $url = 'https://s3.amazonaws.com/Minecraft.Download/versions/1.12.1/minecraft_server.1.12.1.jar',
   $install_dir = '/opt/minecraft'
-  ){
-  file {'/opt/minecraft':
+){
+  file { $install_dir:
     ensure => directory,
   }
-  file {"${install_dir}/minecraft_server.jar":
+  file { "${install_dir}/minecraft_server.jar":
     ensure => file,
     source => $url,
-    before => Service['minecraft'],
   }
+
   package {'java':
     ensure => present,
   }
-  file {"${install_dir}/eula.txt':
+  file {"${install_dir}/eula.txt":
     ensure => file,
-    content =>  'eula=true',
+    content => 'eula=true'
   }
-  file {'/etc/systemd/system/minecraft.service':
+  file {‘/etc/systemd/system/minecraft.service’:
     ensure => file,
-    content => epp('minecraft/minecraft.service.epp', {
+    content => epp(‘minecraft/minecraft.service.epp’, {
       install_dir => $install_dir,
     }),
   }
-  service {'minecraft':
-    ensure => running, 
+  service { 'minecraft':
+    ensure => running,
     enable => true,
+    require => [Package[‘java’],File[‘/opt/minecraft/eula.txt’],File[‘/etc/systemd/system/minecraft.service’]],
   }
 }
